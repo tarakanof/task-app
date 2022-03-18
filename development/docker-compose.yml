@@ -35,8 +35,5 @@ services:
       - ./grafana/datasource.yaml:/etc/grafana/provisioning/datasources/default.yaml
       - ./grafana/task-app.json:/etc/grafana/provisioning/dashboards/task-app.json
       - ./grafana/dashboard.yml:/etc/grafana/provisioning/dashboards/dashboard.yml
-    environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin
     ports:
       - "3000:3000"
