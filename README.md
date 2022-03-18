@@ -1,4 +1,4 @@
-# task-app
+# Task-App
 ## Simple http-server "Hello, worlkd" app
 
 To run app with docker-compose in folder *development* run command:
@@ -9,7 +9,7 @@ docker-compose up
 ```
 curl http://localhost
 ```
- - Metrics are exposed to `http://localhost/metrics'
+ - Metrics are exposed to `http://localhost/metrics`
 ```
 curl http://localhost/metrics
 ```
@@ -30,6 +30,7 @@ helm upgrade --install ./deployment/tast-app
 ###
 
 ## About gitlab-ci:
+Sample gitlab-ci with build and deploy to kubernetes stages.
 
 This variables must be set in project CI/CD variables:
  - `PAT` private acces token
