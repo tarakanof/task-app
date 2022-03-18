@@ -1,5 +1,5 @@
 # Task-App
-## Simple http-server "Hello, worlkd" app
+## Simple http-server "Hello, world" app
 
 To run app with docker-compose in folder *development* run command:
 ```
