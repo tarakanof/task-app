@@ -1,0 +1,74 @@
+variables:
+  KUBECONFIG: /root/.kube/config
+  VERSIONCOMPONENTTOINCREMENT: '-m'
+  # -M = Major (first position), -m = minor (second position), -p = patch (third position)
+  REGISTRYPROJECTNAME: task-app
+  NAMESPACE: task-app
+
+stages:
+  - build
+  - increment-version
+  - deploy
+
+build-app-image:
+  extends: .build-images
+  variables:
+    DOCKERFILE: dockerfile
+    CONTAINERNAME: task-app
+
+.build-images:
+  stage: build
+  cache:
+    paths:
+      - .cache
+      - .cache_images
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
+  before_script:
+    - mkdir -p /kaniko/.docker
+    - echo "{\"auths\":{\"$MY_REGISTRY\":{\"username\":\"$MY_REGISTRY_USER\",\"password\":\"$MY_REGISTRY_USER_PASSWORD\"}}}" > /kaniko/.docker/config.json
+    - cat /kaniko/.docker/config.json
+  script:
+    - echo CI_COMMIT_SHA $CI_COMMIT_SHA
+    - /kaniko/executor
+      --cache-dir=$CI_PROJECT_DIR/.cache_images
+      --context $CI_PROJECT_DIR
+      --dockerfile $CI_PROJECT_DIR/deployment/${DOCKERFILE}
+      --destination $MY_REGISTRY/$REGISTRYPROJECTNAME/${CONTAINERNAME}:latest
+      --destination $MY_REGISTRY/$REGISTRYPROJECTNAME/${CONTAINERNAME}:$VERSION
+      --single-snapshot
+  only:
+    - main
+
+increment-version:
+  stage: increment-version
+  image:
+    name: bash:latest
+    entrypoint: [""]
+  script:
+    - apk add curl
+    - NEWVERSION=$(. ./deployment/increment_version.sh ${VERSIONCOMPONENTTOINCREMENT} ${VERSION})
+    - 'curl --request PUT --header "PRIVATE-TOKEN: ${PAT}" "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/variables/VERSION" --form "value=$NEWVERSION"'
+  only:
+    - main
+
+deploy:
+  stage: deploy
+  image:
+    name: alpine/helm
+    entrypoint: [""]
+  before_script:
+    - mkdir -p /root/.kube
+    - echo ${KUBE_CONFIG} | base64 -d > ${KUBECONFIG}
+  script:
+    - helm upgrade --install ${CI_PROJECT_NAME} $CI_PROJECT_DIR/deployment/$REGISTRYPROJECTNAME
+      --set image=$MY_REGISTRY/$REGISTRYPROJECTNAME/
+      --set imageTag=$VERSION
+      --wait
+      --timeout 3600s
+      --atomic
+      --debug
+      --namespace $NAMESPACE
+  only:
+    - main

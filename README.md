@@ -9,8 +9,32 @@ docker-compose up
 ```
 curl http://localhost
 ```
+ - Metrics are exposed to `http://localhost/metrics'
+```
+curl http://localhost/metrics
+```
  - Prometheus: `http://localhost:9090`
- - Grafana: `http://localhost:3000` login: admin and password: admin
+ - Grafana with sample dashboards: `http://localhost:3000` login: admin and password: admin
 
 Prometheus config: `./development/prometheus/`
 Grafana config and dashboard: `./development/grafana`
+
+## Helm chart
+Chart in `./deployment/tast-app`
+*Some variables must be set before installing!*
+look in `variables.yaml`
+To install in kubernetes cluster:
+```
+helm upgrade --install ./deployment/tast-app
+```
+###
+
+## About gitlab-ci:
+
+This variables must be set in project CI/CD variables:
+ - `PAT` private acces token
+ - `VERSION` version of the app / docker image. Format: `0.0.0`
+ - `MY_REGISTRY` docker registry url
+ - `MY_REGISTRY_USER`
+ - `MY_REGISTRY_USER_PASSWORD`
+ - `KUBE_CONFIG`
