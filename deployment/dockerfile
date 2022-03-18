@@ -1,0 +1,11 @@
+FROM python:3.9-buster
+
+WORKDIR /app
+
+RUN pip3 install Flask \
+    flask_prom
+RUN apt update && apt install -y curl
+
+COPY ../development/src/task.py ./task.py
+
+CMD ["python3", "task.py"]

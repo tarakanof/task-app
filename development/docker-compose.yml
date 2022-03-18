@@ -1,0 +1,42 @@
+version: '3.9'
+
+volumes:
+  task-data: {}
+
+services:
+  taks-app:
+    build:
+      context: .
+      dockerfile: dockerfile
+    container_name: task-app
+    volumes:
+      - ./src/task.py:/app/task.py
+    ports:
+      - "80:80"
+    healthcheck:
+      test: curl -f http://localhost || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  prometheus:
+    image: bitnami/prometheus:2.33.5
+    container_name: prometheus
+    volumes:
+      - ./prometheus/prometheus.yml:/opt/bitnami/prometheus/conf/prometheus.yml
+    ports:
+      - "9090:9090"
+
+  grafana:
+    image: grafana/grafana:8.4.4
+    container_name: grafana
+    volumes:
+      - ./grafana/datasource.yaml:/etc/grafana/provisioning/datasources/default.yaml
+      - ./grafana/task-app.json:/etc/grafana/provisioning/dashboards/task-app.json
+      - ./grafana/dashboard.yml:/etc/grafana/provisioning/dashboards/dashboard.yml
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    ports:
+      - "3000:3000"
